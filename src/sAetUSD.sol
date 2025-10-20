@@ -11,19 +11,16 @@ contract sAetUSD is ConcreteOFT, ERC4626, ReentrancyGuard {
     // During base constructor execution, this is false by default.
 
     address public silo;
+
     event SiloUpdated(address indexed oldSilo, address indexed newSilo);
 
-    constructor(
-        IERC20 _aetUSD,
-        address lzEndpoint,
-        address owner_
-    )
+    constructor(IERC20 _aetUSD, address lzEndpoint, address owner_)
         ERC4626(_aetUSD)
         ConcreteOFT("Staked AetUSD", "sAetUSD", 18, lzEndpoint, owner_)
     {}
 
     function decimals() public view override(ERC20, ERC4626) returns (uint8) {
-    return ERC4626.decimals();
+        return ERC4626.decimals();
     }
 
     function setSilo(address _silo) external onlyOwner {
@@ -31,12 +28,7 @@ contract sAetUSD is ConcreteOFT, ERC4626, ReentrancyGuard {
         silo = _silo;
     }
 
-    function deposit(uint256 assets, address receiver)
-        public
-        override(ERC4626)
-        nonReentrant
-        returns (uint256 shares)
-    {
+    function deposit(uint256 assets, address receiver) public override(ERC4626) nonReentrant returns (uint256 shares) {
         require(assets > 0, "sAetUSD: assets=0");
         shares = previewDeposit(assets);
         require(IERC20(asset()).transferFrom(msg.sender, address(this), assets));
@@ -46,12 +38,7 @@ contract sAetUSD is ConcreteOFT, ERC4626, ReentrancyGuard {
 
     // Slither false positive: transferFrom must precede mint for correct share accounting
     // Reentrancy is blocked by nonReentrant
-    function mint(uint256 shares, address receiver)
-        public
-        override(ERC4626)
-        nonReentrant
-        returns (uint256 assets)
-    {
+    function mint(uint256 shares, address receiver) public override(ERC4626) nonReentrant returns (uint256 assets) {
         require(shares > 0, "sAetUSD: shares=0");
         assets = previewMint(shares);
         require(IERC20(asset()).transferFrom(msg.sender, address(this), assets));

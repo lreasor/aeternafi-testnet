@@ -9,13 +9,13 @@ contract ConcreteOFT is ERC20, OFTCore {
     constructor(
         string memory name_,
         string memory symbol_,
-        uint8 decimals_,          // <— explicitly pass decimals
+        uint8 decimals_, // <— explicitly pass decimals
         address lzEndpoint,
         address owner_
     )
         ERC20(name_, symbol_)
         OFTCore(decimals_, lzEndpoint, owner_)
-        Ownable(owner_)   // <— add this back
+        Ownable(owner_) // <— add this back
     {}
 
     function token() public view returns (address) {
@@ -26,21 +26,22 @@ contract ConcreteOFT is ERC20, OFTCore {
         return false;
     }
 
-    function _debit(
-        address _from,
-        uint256 _amountLD,
-        uint256 _minAmountLD,
-        uint32 _dstEid
-    ) internal virtual override returns (uint256 amountSentLD, uint256 amountReceivedLD) {
+    function _debit(address _from, uint256 _amountLD, uint256 _minAmountLD, uint32 _dstEid)
+        internal
+        virtual
+        override
+        returns (uint256 amountSentLD, uint256 amountReceivedLD)
+    {
         (amountSentLD, amountReceivedLD) = _debitView(_amountLD, _minAmountLD, _dstEid);
         _burn(_from, amountSentLD);
     }
 
-    function _credit(
-        address _to,
-        uint256 _amountLD,
-        uint32 /*_srcEid*/
-    ) internal virtual override returns (uint256 amountReceivedLD) {
+    function _credit(address _to, uint256 _amountLD, uint32 /*_srcEid*/ )
+        internal
+        virtual
+        override
+        returns (uint256 amountReceivedLD)
+    {
         if (_to == address(0)) _to = address(0xdead);
         _mint(_to, _amountLD);
         return _amountLD;

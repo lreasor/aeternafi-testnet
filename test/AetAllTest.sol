@@ -29,7 +29,7 @@ contract AetAllTest is Test {
     uint256 internal constant ONE = 1e18;
 
     function setUp() public {
-    endpoint = new EndpointMock(1); // chainId = 1 for testing
+        endpoint = new EndpointMock(1); // chainId = 1 for testing
 
         // Deploy base token & mintr
         aetUSD = new AetUSD("Aeterna USD", "AetUSD", address(endpoint), owner);
@@ -225,113 +225,110 @@ contract AetAllTest is Test {
 
     // --- Internal views for silo requests ---
     function _requestOf(address who) internal view returns (uint256 amount, uint256 unlockTime) {
-        (bool ok, bytes memory data) = address(silo).staticcall(
-            abi.encodeWithSignature("requests(address)", who)
-        );
+        (bool ok, bytes memory data) = address(silo).staticcall(abi.encodeWithSignature("requests(address)", who));
         require(ok, "silo.requests() failed");
         // abi decode struct (amount, unlockTime)
         (amount, unlockTime) = abi.decode(data, (uint256, uint256));
     }
 
     function test_bootstrap_first_deposit_is_one_to_one() public {
-    uint256 amount = 100 * ONE;
-    _approve(user, address(aetUSD), address(vault), amount);
+        uint256 amount = 100 * ONE;
+        _approve(user, address(aetUSD), address(vault), amount);
 
-    vm.startPrank(user);
-    uint256 shares = vault.deposit(amount, user);
-    vm.stopPrank();
+        vm.startPrank(user);
+        uint256 shares = vault.deposit(amount, user);
+        vm.stopPrank();
 
-    assertEq(shares, amount, "first deposit should mint 1:1 shares");
+        assertEq(shares, amount, "first deposit should mint 1:1 shares");
     }
 
-   function test_multiple_depositors_proportional_shares() public {
-    uint256 amt1 = 100 * ONE;
-    uint256 amt2 = 300 * ONE;
+    function test_multiple_depositors_proportional_shares() public {
+        uint256 amt1 = 100 * ONE;
+        uint256 amt2 = 300 * ONE;
 
-    _approve(user, address(aetUSD), address(vault), amt1);
-    _approve(user2, address(aetUSD), address(vault), amt2);
+        _approve(user, address(aetUSD), address(vault), amt1);
+        _approve(user2, address(aetUSD), address(vault), amt2);
 
-    vm.prank(user);
-    uint256 shares1 = vault.deposit(amt1, user);
+        vm.prank(user);
+        uint256 shares1 = vault.deposit(amt1, user);
 
-    vm.prank(user2);
-    uint256 shares2 = vault.deposit(amt2, user2);
+        vm.prank(user2);
+        uint256 shares2 = vault.deposit(amt2, user2);
 
-    assertEq(shares2, shares1 * 3, "shares scale with deposits");
+        assertEq(shares2, shares1 * 3, "shares scale with deposits");
 
-    // Add reward to skew share price
-    _fundAndDistributeReward(100 * ONE);
+        // Add reward to skew share price
+        _fundAndDistributeReward(100 * ONE);
 
-    // User1 redeems all shares
-    vm.startPrank(user);
-    uint256 assetsOut1 = vault.redeem(shares1, user, user);
-    vm.stopPrank();
+        // User1 redeems all shares
+        vm.startPrank(user);
+        uint256 assetsOut1 = vault.redeem(shares1, user, user);
+        vm.stopPrank();
 
-    // Warp and claim
-    ( , uint256 unlock) = _requestOf(user);
-    vm.warp(unlock + 1);
-    vm.prank(user);
-    silo.claim();
+        // Warp and claim
+        (, uint256 unlock) = _requestOf(user);
+        vm.warp(unlock + 1);
+        vm.prank(user);
+        silo.claim();
 
-    assertGt(assetsOut1, amt1, "user1 got boosted assets after reward");
+        assertGt(assetsOut1, amt1, "user1 got boosted assets after reward");
     }
 
-function test_dust_rounding_small_deposit_and_withdraw() public {
-    uint256 tiny = 1;
+    function test_dust_rounding_small_deposit_and_withdraw() public {
+        uint256 tiny = 1;
 
-    _approve(user, address(aetUSD), address(vault), tiny);
-    vm.prank(user);
-    uint256 shares = vault.deposit(tiny, user);
+        _approve(user, address(aetUSD), address(vault), tiny);
+        vm.prank(user);
+        uint256 shares = vault.deposit(tiny, user);
 
-    assertGt(shares, 0, "shares minted for tiny deposit");
+        assertGt(shares, 0, "shares minted for tiny deposit");
 
-    vm.prank(user);
-    uint256 assetsOut = vault.redeem(shares, user, user);
+        vm.prank(user);
+        uint256 assetsOut = vault.redeem(shares, user, user);
 
-    ( , uint256 unlock) = _requestOf(user);
-    vm.warp(unlock + 1);
-    vm.prank(user);
-    silo.claim();
+        (, uint256 unlock) = _requestOf(user);
+        vm.warp(unlock + 1);
+        vm.prank(user);
+        silo.claim();
 
-    assertEq(assetsOut, tiny, "round-trip preserves tiny deposit");
- }
+        assertEq(assetsOut, tiny, "round-trip preserves tiny deposit");
+    }
 
-function test_only_vault_can_enqueue_in_silo() public {
-    vm.expectRevert("Silo: not vault");
-    silo.enqueueFromVault(user, 100);
-}
+    function test_only_vault_can_enqueue_in_silo() public {
+        vm.expectRevert("Silo: not vault");
+        silo.enqueueFromVault(user, 100);
+    }
 
-//function test_only_owner_can_distribute_rewards() public {
-//    _fundSilo(100 * ONE);
-//    vm.prank(user); // not owner
-//    vm.expectRevert(abi.encodeWithSelector(0xca5eb5e1, user));
-//    silo.distributeRewards(100 * ONE);
-//}
+    //function test_only_owner_can_distribute_rewards() public {
+    //    _fundSilo(100 * ONE);
+    //    vm.prank(user); // not owner
+    //    vm.expectRevert(abi.encodeWithSelector(0xca5eb5e1, user));
+    //    silo.distributeRewards(100 * ONE);
+    //}
 
-function test_claim_before_cooldown_reverts() public {
-    uint256 amt = 50 * ONE;
-    _approve(user, address(aetUSD), address(vault), amt);
-    vm.prank(user);
-    vault.deposit(amt, user);
+    function test_claim_before_cooldown_reverts() public {
+        uint256 amt = 50 * ONE;
+        _approve(user, address(aetUSD), address(vault), amt);
+        vm.prank(user);
+        vault.deposit(amt, user);
 
-    vm.prank(user);
-    vault.withdraw(amt, user, user);
+        vm.prank(user);
+        vault.withdraw(amt, user, user);
 
-    vm.prank(user);
-    vm.expectRevert("Silo: cooling down");
-    silo.claim();
-}
+        vm.prank(user);
+        vm.expectRevert("Silo: cooling down");
+        silo.claim();
+    }
 
-function _fundSilo(uint256 amount) internal {
-    _approve(treasury, address(aetUSD), address(silo), amount);
-    vm.prank(treasury);
-    aetUSD.transfer(address(silo), amount);
-}
+    function _fundSilo(uint256 amount) internal {
+        _approve(treasury, address(aetUSD), address(silo), amount);
+        vm.prank(treasury);
+        aetUSD.transfer(address(silo), amount);
+    }
 
-function _fundAndDistributeReward(uint256 amount) internal {
-    _fundSilo(amount);
-    vm.prank(owner);
-    silo.distributeRewards(amount);
-}
-
+    function _fundAndDistributeReward(uint256 amount) internal {
+        _fundSilo(amount);
+        vm.prank(owner);
+        silo.distributeRewards(amount);
+    }
 }
