@@ -1,0 +1,17 @@
+[profile.default]
+src = "src"
+out = "out"
+libs = ["lib"]
+test = "test"
+script = "script"
+cache_path = "cache_forge"
+ffi = true
+solc-version = "0.8.20"
+optimizer = true
+optimizer-runs = 200
+gas_reports = ["Vault", "StakingManager", "sAetUSD"] # <--- only these contracts
+
+[fuzz]
+runs = 5        # number of fuzz runs per test/invariant
+max-test-rejects = 65536  # optional: how many rejected inputs before aborting
+seed = "0x1234"     # optional: set a fixed seed for reproducibility

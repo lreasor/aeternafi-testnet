@@ -1,0 +1,31 @@
+# Compiler files
+cache/
+out/
+
+# Ignores development broadcast logs
+!/broadcast
+/broadcast/*/31337/
+/broadcast/**/dry-run/
+
+# Docs
+docs/
+
+# Dotenv file
+.env
+
+# Foundry dependencies
+lib/
+
+# Frontend (if using npm)
+node_modules/
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Logs and temp files
+*.log
+*.tsbuildinfo
+
+# another cache
+cache_forge/
