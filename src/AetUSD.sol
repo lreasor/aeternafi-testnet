@@ -20,8 +20,8 @@ contract AetUSD is ConcreteOFT {
      * @param owner_     Address that will be set as Ownable owner
      */
     constructor(string memory name_, string memory symbol_, address lzEndpoint, address owner_)
-        ConcreteOFT(name_, symbol_, 18, lzEndpoint, owner_) // ✅ forward all args to OFT (and Ownable)
-        {}
+    ConcreteOFT(name_, symbol_, 18, lzEndpoint, owner_) // ✅ forward all args to OFT (and Ownable)
+    {}
 
     modifier onlyMinter() {
         require(msg.sender == minter, "AetUSD: not minter");

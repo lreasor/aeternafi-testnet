@@ -15,8 +15,8 @@ contract ConcreteOFT is ERC20, OFTCore {
     )
         ERC20(name_, symbol_)
         OFTCore(decimals_, lzEndpoint, owner_)
-        Ownable(owner_) // <— add this back
-        {}
+    Ownable(owner_) // <— add this back
+    {}
 
     function token() public view returns (address) {
         return address(this);
