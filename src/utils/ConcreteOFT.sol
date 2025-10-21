@@ -36,7 +36,11 @@ contract ConcreteOFT is ERC20, OFTCore {
         _burn(_from, amountSentLD);
     }
 
-    function _credit(address _to, uint256 _amountLD, uint32 /*_srcEid*/ )
+    function _credit(
+        address _to,
+        uint256 _amountLD,
+        uint32 /*_srcEid*/
+    )
         internal
         virtual
         override
