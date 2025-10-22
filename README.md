@@ -2,8 +2,7 @@
 AeternaFi is a next generation DeFi protocol for asset-centric staking, built with modular smart contracts and realistic testnet simulation. This repo contains the verified Sepolia deployment, staking dApp, and core contracts.
 
 ## ✅ CI & Formatting Status
-![Forge Fmt](https://github.com/aeternafi/aeternafi-testnet/actions/workflows/test.yml/badge.svg?branch=master)
-
+![CI](https://github.com/lreasor/aeternafi-testnet/actions/workflows/test.yml/badge.svg?branch=master)
 
 ## 🧩 Contracts
 🔐 AetUSD.sol
